@@ -16,7 +16,8 @@ public interface MetaDataService {
      */
     public void serializeMetaData(
             final OutputStream outputStream,
-            final Map<String, Object> attributes) throws IOException;
+            final Map<String, Object> attributes
+    ) throws IOException;
 
     /**
      * inputStream must be non-null and must correspond to a live stream
