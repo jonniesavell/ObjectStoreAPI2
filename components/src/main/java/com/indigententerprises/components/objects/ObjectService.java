@@ -1,7 +1,7 @@
 package com.indigententerprises.components.objects;
 
 import com.indigententerprises.services.common.SystemException;
-
+import com.indigententerprises.services.objects.IObjectService;
 import com.indigententerprises.domain.objects.Handle;
 
 import java.io.File;
@@ -15,10 +15,9 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
- *
  * @author jonniesavell
  */
-public class ObjectService {
+public class ObjectService implements IObjectService {
 
     private final String SUFFIX = "__METADATA";
     private final com.indigententerprises.services.objects.ObjectService primitiveObjectService;
@@ -32,6 +31,7 @@ public class ObjectService {
         this.primitiveMetaDataService = primitiveMetaDataService;
     }
 
+    @Override
     public Map<String, Object> retrieveObjectMetaData(final Handle handle)
             throws NoSuchElementException, SystemException {
 
@@ -65,6 +65,7 @@ public class ObjectService {
         }
     }
 
+    @Override
     public void retrieveObject(
             final Handle handle,
             final OutputStream outputStream)
@@ -73,6 +74,7 @@ public class ObjectService {
         this.primitiveObjectService.retrieveObject(handle.identifier, outputStream);
     }
 
+    @Override
     public Map<String, Object> retrieveObjectAndMetaData(
             final Handle handle,
             final OutputStream outputStream)
@@ -112,6 +114,7 @@ public class ObjectService {
         }
     }
 
+    @Override
     public Handle storeObjectAndMetaData(
             final InputStream inputStream,
             final int fileSize,

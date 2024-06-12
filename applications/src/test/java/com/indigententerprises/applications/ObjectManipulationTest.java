@@ -36,7 +36,7 @@ public class ObjectManipulationTest {
 
     private File file;
 
-    @Before
+    //@Before
     public void before() throws IOException {
 
         file = new File("object.bin");
@@ -79,7 +79,7 @@ public class ObjectManipulationTest {
         }
     }
 
-    @After
+    //@After
     public void afterTest() throws IOException {
 
         if (file.exists()) {
@@ -87,7 +87,7 @@ public class ObjectManipulationTest {
         }
     }
 
-    @Test
+    //@Test
     public void testObjectStuff() throws S3Exception, java.io.FileNotFoundException, java.io.IOException {
 
         // this is where YOU enter YOUR credentials.

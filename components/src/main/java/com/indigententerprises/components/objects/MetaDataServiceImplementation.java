@@ -115,7 +115,7 @@ public class MetaDataServiceImplementation implements MetaDataService {
             final Collection<Schema.Field> schemaFields = schema.getFields();
 
             for (final Schema.Field schemaField : schemaFields) {
-                // TODO: this is handy during the learning phase but not helpful in production.
+                // TODO: not helpful in production.
                 System.out.println("name        : " + schemaField.name());
                 System.out.println("schema-type : " + schemaField.schema().getType());
                 System.out.println("position    : " + schemaField.pos());

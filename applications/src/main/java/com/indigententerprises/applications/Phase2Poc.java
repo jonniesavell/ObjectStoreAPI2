@@ -1,22 +1,15 @@
 package com.indigententerprises.applications;
 
-import com.indigententerprises.components.files.FileInvestigativeServiceImplementation;
-import com.indigententerprises.components.objects.MetaDataServiceImplementation;
-import com.indigententerprises.components.objects.ObjectService;
-import com.indigententerprises.components.objects.ObjectServiceImplementation;
-import com.indigententerprises.components.streams.TrivialStreamTransferService;
+import com.indigententerprises.components.ObjectStorageComponent;
+
+import com.indigententerprises.factories.ObjectStoreFactory;
 
 import com.indigententerprises.services.common.SystemException;
 import com.indigententerprises.services.files.FileInvestigativeService;
-import com.indigententerprises.services.streams.StreamTransferService;
+import com.indigententerprises.services.objects.IObjectService;
 
 import com.indigententerprises.domain.files.FileData;
 import com.indigententerprises.domain.objects.Handle;
-
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,29 +37,19 @@ public class Phase2Poc {
                 final String requestedBucketName = args[0];
 
                 try {
-                    final EnvironmentVariableCredentialsProvider credentialsProvider =
-                            EnvironmentVariableCredentialsProvider.create();
                     final String targetBucketName = requestedBucketName;
+                    final ObjectStorageComponent objectStorageComponent =
+                            ObjectStoreFactory.createObjectStorageComponent(targetBucketName);
+                    final IObjectService objectService = objectStorageComponent.getObjectService();
                     final FileInvestigativeService fileInvestigativeService =
-                            new FileInvestigativeServiceImplementation();
+                            objectStorageComponent.getFileInvestigativeService();
                     final FileData fileData = fileInvestigativeService.investigate(file);
-                    final StreamTransferService streamTransferService = new TrivialStreamTransferService();
-                    final com.indigententerprises.services.objects.ObjectService primitiveObjectService =
-                            new ObjectServiceImplementation(
-                                    credentialsProvider,
-                                    targetBucketName,
-                                    streamTransferService
+                    final Handle handle =
+                            objectService.storeObjectAndMetaData(
+                                    fileData.getInputStream(),
+                                    (int) fileData.getFileMetaData().getSize(),
+                                    new HashMap<>()
                             );
-                    final com.indigententerprises.services.objects.MetaDataService primitiveMetaDataService =
-                            new MetaDataServiceImplementation();
-                    final ObjectService objectService =
-                            new ObjectService(primitiveObjectService, primitiveMetaDataService);
-                    final Handle handle;
-
-                    handle = objectService.storeObjectAndMetaData(
-                            fileData.getInputStream(),
-                            (int) fileData.getFileMetaData().getSize(),
-                            new HashMap<>());
 
                     final FileOutputStream fileOutputStream = new FileOutputStream(file, false);
 

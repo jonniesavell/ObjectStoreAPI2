@@ -7,7 +7,6 @@ import com.indigententerprises.domain.files.FileMetaData;
 
 import java.io.File;
 import java.util.LinkedList;
-import java.util.Deque;
 import java.util.NoSuchElementException;
 
 public class FileInvestigativeServiceImplementation implements FileInvestigativeService {
@@ -21,8 +20,6 @@ public class FileInvestigativeServiceImplementation implements FileInvestigative
             final LinkedList<String> nameComponents = new LinkedList<>();
 
             {
-                final Deque<String> deque = nameComponents;
-
                 // mutable state
                 File temp = file;
 

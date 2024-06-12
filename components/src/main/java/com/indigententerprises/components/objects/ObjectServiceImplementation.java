@@ -4,8 +4,6 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -23,49 +21,23 @@ import java.io.OutputStream;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 
+/**
+ * @author jonniesavell
+ */
 public class ObjectServiceImplementation implements
         com.indigententerprises.services.objects.ObjectService {
-
-    private final AwsCredentialsProvider credentialsProvider;
+    private final S3Client s3Client;
     private final String targetBucketName;
     private final StreamTransferService streamTransferService;
 
     public ObjectServiceImplementation(
-            final AwsCredentialsProvider credentialsProvider,
+            final S3Client s3Client,
             final String targetBucketName,
-            final StreamTransferService streamTransferService) throws SystemException {
-
-        this.credentialsProvider = credentialsProvider;
+            final StreamTransferService streamTransferService
+    ) {
+        this.s3Client = s3Client;
         this.targetBucketName = targetBucketName;
         this.streamTransferService = streamTransferService;
-
-        try {
-            final S3Client s3Client =
-                    S3Client
-                            .builder()
-                            .credentialsProvider(this.credentialsProvider)
-                            .build();
-            try {
-                final HeadBucketRequest headBucketRequest =
-                        HeadBucketRequest
-                                .builder()
-                                .bucket(targetBucketName)
-                                .build();
-                try {
-                    s3Client.headBucket(headBucketRequest);
-                    final AwsCredentials credentials = credentialsProvider.resolveCredentials();
-                    // ???
-                } catch (NoSuchBucketException e) {
-                    throw new RuntimeException("bucket " + this.targetBucketName + " not found");
-                }
-            } finally {
-                s3Client.close();
-            }
-        } catch (AwsServiceException e) {
-            throw new SystemException("", e);
-        } catch (SdkException e) {
-            throw new SystemException("", e);
-        }
     }
 
     @Override
@@ -75,33 +47,15 @@ public class ObjectServiceImplementation implements
             final InputStream sourceInputStream
     ) throws SystemException {
         try {
-            final S3Client s3Client =
-                    S3Client
-                            .builder()
-                            .credentialsProvider(this.credentialsProvider)
-                            .build();
-            try {
-                final HeadBucketRequest headBucketRequest =
-                        HeadBucketRequest
-                                .builder()
-                                .bucket(targetBucketName)
-                                .build();
-                try {
-                    s3Client.headBucket(headBucketRequest);
-                    final AwsCredentials credentials = credentialsProvider.resolveCredentials();
-                    final PutObjectRequest putObjectRequest =
-                            PutObjectRequest.builder()
-                                   .bucket(targetBucketName)
-                                   .key(id)
-                                   .metadata(Collections.emptyMap())
-                                   .build();
-                    s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(sourceInputStream, size));
-                } catch (NoSuchBucketException e) {
-                    throw new RuntimeException("bucket " + this.targetBucketName + " not found");
-                }
-            } finally {
-                s3Client.close();
-            }
+            final PutObjectRequest putObjectRequest =
+                    PutObjectRequest.builder()
+                           .bucket(targetBucketName)
+                           .key(id)
+                           .metadata(Collections.emptyMap())
+                           .build();
+            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(sourceInputStream, size));
+        } catch (NoSuchBucketException e) {
+            throw new SystemException("bucket " + this.targetBucketName + " not found", e);
         } catch (AwsServiceException e) {
             throw new SystemException("", e);
         } catch (SdkException e) {
@@ -115,40 +69,29 @@ public class ObjectServiceImplementation implements
             final OutputStream outputStream
     ) throws NoSuchElementException, SystemException {
         try {
-            final S3Client s3Client =
-                    S3Client
+            final HeadBucketRequest headBucketRequest =
+                    HeadBucketRequest
                             .builder()
-                            .credentialsProvider(this.credentialsProvider)
+                            .bucket(targetBucketName)
                             .build();
-            try {
-                final HeadBucketRequest headBucketRequest =
-                        HeadBucketRequest
-                                .builder()
-                                .bucket(targetBucketName)
-                                .build();
-                try {
-                    s3Client.headBucket(headBucketRequest);
-                    final GetObjectRequest getObjectRequest =
-                            GetObjectRequest
-                                    .builder()
-                                    .bucket(this.targetBucketName)
-                                    .key(id)
-                                    .build();
-                    final ResponseBytes<GetObjectResponse> objectBytes =
-                            s3Client.getObjectAsBytes(getObjectRequest);
-                    final InputStream inputStream = objectBytes.asInputStream();
+            s3Client.headBucket(headBucketRequest);
+            final GetObjectRequest getObjectRequest =
+                    GetObjectRequest
+                            .builder()
+                            .bucket(this.targetBucketName)
+                            .key(id)
+                            .build();
+            final ResponseBytes<GetObjectResponse> objectBytes =
+                    s3Client.getObjectAsBytes(getObjectRequest);
+            final InputStream inputStream = objectBytes.asInputStream();
 
-                    try {
-                        streamTransferService.transferStreamData(inputStream, outputStream);
-                    } finally {
-                        inputStream.close();
-                    }
-                } catch (NoSuchBucketException e) {
-                    throw new NoSuchElementException(e);
-                }
+            try {
+                streamTransferService.transferStreamData(inputStream, outputStream);
             } finally {
-                s3Client.close();
+                inputStream.close();
             }
+        } catch (NoSuchBucketException e) {
+            throw new NoSuchElementException();
         } catch (IOException e) {
             throw new SystemException("", e);
         } catch (AwsServiceException e) {
