@@ -1,6 +1,7 @@
 package com.indigententerprises.services.objects;
 
 import com.indigententerprises.domain.objects.Handle;
+import com.indigententerprises.domain.objects.HandleAndArnPair;
 import com.indigententerprises.services.common.SystemException;
 
 import java.io.InputStream;
@@ -23,7 +24,7 @@ public interface IObjectService {
             final OutputStream outputStream
     ) throws NoSuchElementException, SystemException;
 
-    public Handle storeObjectAndMetaData(
+    public HandleAndArnPair storeObjectAndMetaData(
             final InputStream inputStream,
             final int fileSize,
             final Map<String, Object> metadata

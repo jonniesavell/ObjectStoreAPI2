@@ -10,6 +10,7 @@ import com.indigententerprises.services.objects.IObjectService;
 
 import com.indigententerprises.domain.files.FileData;
 import com.indigententerprises.domain.objects.Handle;
+import com.indigententerprises.domain.objects.HandleAndArnPair;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,12 +45,13 @@ public class Phase2Poc {
                     final FileInvestigativeService fileInvestigativeService =
                             objectStorageComponent.getFileInvestigativeService();
                     final FileData fileData = fileInvestigativeService.investigate(file);
-                    final Handle handle =
+                    final HandleAndArnPair handleAndArnPair =
                             objectService.storeObjectAndMetaData(
                                     fileData.getInputStream(),
                                     (int) fileData.getFileMetaData().getSize(),
                                     new HashMap<>()
                             );
+                    final Handle handle = handleAndArnPair.handle;
 
                     final FileOutputStream fileOutputStream = new FileOutputStream(file, false);
 

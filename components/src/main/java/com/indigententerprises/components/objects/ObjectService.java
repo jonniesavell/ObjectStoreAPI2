@@ -3,6 +3,7 @@ package com.indigententerprises.components.objects;
 import com.indigententerprises.services.common.SystemException;
 import com.indigententerprises.services.objects.IObjectService;
 import com.indigententerprises.domain.objects.Handle;
+import com.indigententerprises.domain.objects.HandleAndArnPair;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,16 +20,21 @@ import java.util.UUID;
  */
 public class ObjectService implements IObjectService {
 
-    private final String SUFFIX = "__METADATA";
+    private static final String SUFFIX = "__METADATA";
+    private static final String SEPARATOR = "/";
+
     private final com.indigententerprises.services.objects.ObjectService primitiveObjectService;
     private final com.indigententerprises.services.objects.MetaDataService primitiveMetaDataService;
+    private final String arnFragment;
 
     public ObjectService(
             final com.indigententerprises.services.objects.ObjectService primitiveObjectService,
-            final com.indigententerprises.services.objects.MetaDataService primitiveMetaDataService
+            final com.indigententerprises.services.objects.MetaDataService primitiveMetaDataService,
+            final String bucketName
     ) {
         this.primitiveObjectService = primitiveObjectService;
         this.primitiveMetaDataService = primitiveMetaDataService;
+        this.arnFragment = "arn:aws:s3:::" + bucketName;
     }
 
     @Override
@@ -115,15 +121,15 @@ public class ObjectService implements IObjectService {
     }
 
     @Override
-    public Handle storeObjectAndMetaData(
+    public HandleAndArnPair storeObjectAndMetaData(
             final InputStream inputStream,
             final int fileSize,
             final Map<String, Object> metadata)
             throws SystemException {
         final UUID uuid = UUID.randomUUID();
-        final Handle result = new Handle(uuid.toString());
+        final Handle handle = new Handle(uuid.toString());
 
-        this.primitiveObjectService.persistObject(result.identifier, fileSize, inputStream);
+        this.primitiveObjectService.persistObject(handle.identifier, fileSize, inputStream);
 
         try {
             final File file = File.createTempFile("temp", ".tmp");
@@ -140,9 +146,15 @@ public class ObjectService implements IObjectService {
                 final FileInputStream fileInputStream = new FileInputStream(file);
 
                 try {
-                    final String identifier = constructMetaDataIdentifier(result.identifier);
+                    final String identifier = constructMetaDataIdentifier(handle.identifier);
                     this.primitiveObjectService.persistObject(identifier, (int) file.length(), fileInputStream);
 
+                    final StringBuilder arnBuilder = new StringBuilder(arnFragment);
+                    arnBuilder.append(SEPARATOR);
+                    arnBuilder.append(handle.identifier);
+
+                    final String arn = arnBuilder.toString();
+                    final HandleAndArnPair result = new HandleAndArnPair(handle, arn);
                     return result;
                 } finally {
                     fileInputStream.close();

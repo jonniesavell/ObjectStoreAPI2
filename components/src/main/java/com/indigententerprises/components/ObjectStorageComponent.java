@@ -27,6 +27,7 @@ public class ObjectStorageComponent {
     ) throws SystemException {
         final String targetBucketName = requestedBucketName;
         this.fileInvestigativeService = new FileInvestigativeServiceImplementation();
+
         final StreamTransferService streamTransferService = new TrivialStreamTransferService();
         final com.indigententerprises.services.objects.ObjectService primitiveObjectService =
                 new ObjectServiceImplementation(
@@ -36,7 +37,7 @@ public class ObjectStorageComponent {
                 );
         final com.indigententerprises.services.objects.MetaDataService primitiveMetaDataService =
                 new MetaDataServiceImplementation();
-        this.objectService = new ObjectService(primitiveObjectService, primitiveMetaDataService);
+        this.objectService = new ObjectService(primitiveObjectService, primitiveMetaDataService, targetBucketName);
     }
 
     public IObjectService getObjectService() {
