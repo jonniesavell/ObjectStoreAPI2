@@ -128,7 +128,19 @@ public class ObjectService implements IObjectService {
             throws SystemException {
         final UUID uuid = UUID.randomUUID();
         final Handle handle = new Handle(uuid.toString());
+        return storeObjectAndMetaData(inputStream, handle, fileSize, metadata);
+    }
 
+    /**
+     * NOTE: Danger: potentially overwrites; client needs to know what keys are present.
+     */
+    @Override
+    public HandleAndArnPair storeObjectAndMetaData(
+            final InputStream inputStream,
+            final Handle handle,
+            final int fileSize,
+            final Map<String, Object> metadata)
+            throws SystemException {
         this.primitiveObjectService.persistObject(handle.identifier, fileSize, inputStream);
 
         try {
@@ -146,7 +158,7 @@ public class ObjectService implements IObjectService {
                 final FileInputStream fileInputStream = new FileInputStream(file);
 
                 try {
-                    final String identifier = constructMetaDataIdentifier(handle.identifier);
+                    final String identifier = handle.identifier; // BUG: constructMetaDataIdentifier(handle.identifier);
                     this.primitiveObjectService.persistObject(identifier, (int) file.length(), fileInputStream);
 
                     final StringBuilder arnBuilder = new StringBuilder(arnFragment);

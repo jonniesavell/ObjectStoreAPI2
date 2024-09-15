@@ -26,7 +26,7 @@ public class FileMetaData {
     }
 
     public List<String> getComponents() {
-        return new ArrayList<String>(components);
+        return new ArrayList<>(components);
     }
 
     public long getSize() {

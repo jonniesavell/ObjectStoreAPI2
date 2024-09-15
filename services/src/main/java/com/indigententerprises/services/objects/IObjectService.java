@@ -24,9 +24,24 @@ public interface IObjectService {
             final OutputStream outputStream
     ) throws NoSuchElementException, SystemException;
 
+    /**
+     * client accepts generated Handle
+     */
     public HandleAndArnPair storeObjectAndMetaData(
             final InputStream inputStream,
             final int fileSize,
             final Map<String, Object> metadata
     ) throws SystemException;
+
+    /**
+     * client specifies Handle
+     *
+     * NOTE: can overwrite the contents of existing object
+     */
+    public HandleAndArnPair storeObjectAndMetaData(
+            final InputStream inputStream,
+            final Handle handle,
+            final int fileSize,
+            final Map<String, Object> metadata)
+            throws SystemException;
 }

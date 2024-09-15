@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import com.indigententerprises.services.common.SystemException;
@@ -72,7 +73,7 @@ public class ObjectServiceImplementation implements
             final HeadBucketRequest headBucketRequest =
                     HeadBucketRequest
                             .builder()
-                            .bucket(targetBucketName)
+                            .bucket(this.targetBucketName)
                             .build();
             s3Client.headBucket(headBucketRequest);
             final GetObjectRequest getObjectRequest =
@@ -90,6 +91,8 @@ public class ObjectServiceImplementation implements
             } finally {
                 inputStream.close();
             }
+        } catch (NoSuchKeyException e) {
+            throw new NoSuchElementException();
         } catch (NoSuchBucketException e) {
             throw new NoSuchElementException();
         } catch (IOException e) {
