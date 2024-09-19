@@ -143,42 +143,44 @@ public class ObjectService implements IObjectService {
             throws SystemException {
         this.primitiveObjectService.persistObject(handle.identifier, fileSize, inputStream);
 
-        try {
-            final File file = File.createTempFile("temp", ".tmp");
-
+        if (!metadata.isEmpty()) {
             try {
-                final FileOutputStream fileOutputStream = new FileOutputStream(file);
+                final File file = File.createTempFile("temp", ".tmp");
 
                 try {
-                    this.primitiveMetaDataService.serializeMetaData(fileOutputStream, metadata);
+                    final FileOutputStream fileOutputStream = new FileOutputStream(file);
+
+                    try {
+                        this.primitiveMetaDataService.serializeMetaData(fileOutputStream, metadata);
+                    } finally {
+                        fileOutputStream.close();
+                    }
+
+                    final FileInputStream fileInputStream = new FileInputStream(file);
+
+                    try {
+                        final String identifier = constructMetaDataIdentifier(handle.identifier);
+                        this.primitiveObjectService.persistObject(identifier, (int) file.length(), fileInputStream);
+                    } finally {
+                        fileInputStream.close();
+                    }
                 } finally {
-                    fileOutputStream.close();
+                    if (!file.delete()) {
+                        file.deleteOnExit();
+                    }
                 }
-
-                final FileInputStream fileInputStream = new FileInputStream(file);
-
-                try {
-                    final String identifier = handle.identifier; // BUG: constructMetaDataIdentifier(handle.identifier);
-                    this.primitiveObjectService.persistObject(identifier, (int) file.length(), fileInputStream);
-
-                    final StringBuilder arnBuilder = new StringBuilder(arnFragment);
-                    arnBuilder.append(SEPARATOR);
-                    arnBuilder.append(handle.identifier);
-
-                    final String arn = arnBuilder.toString();
-                    final HandleAndArnPair result = new HandleAndArnPair(handle, arn);
-                    return result;
-                } finally {
-                    fileInputStream.close();
-                }
-            } finally {
-                if (! file.delete()) {
-                    file.deleteOnExit();
-                }
+            } catch (IOException e) {
+                throw new SystemException("", e);
             }
-        } catch (IOException e) {
-            throw new SystemException("", e);
         }
+
+        final StringBuilder arnBuilder = new StringBuilder(arnFragment);
+        arnBuilder.append(SEPARATOR);
+        arnBuilder.append(handle.identifier);
+
+        final String arn = arnBuilder.toString();
+        final HandleAndArnPair result = new HandleAndArnPair(handle, arn);
+        return result;
     }
 
     private String constructMetaDataIdentifier(final String identifier) {
