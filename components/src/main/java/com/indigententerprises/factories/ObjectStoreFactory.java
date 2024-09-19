@@ -19,7 +19,14 @@ public class ObjectStoreFactory {
                 EnvironmentVariableCredentialsProvider.create();
         final AwsCredentials credentials = credentialsProvider.resolveCredentials();
 
-        System.out.println("access-key-id" + credentials.accessKeyId());
+        String region = System.getenv("AWS_REGION");
+
+        if (region == null) {
+            region = System.getenv("AWS_DEFAULT_REGION");
+        }
+
+        System.out.println("access-key-id : " + credentials.accessKeyId());
+        System.out.println("region        : " + region);
 
         final S3Client s3Client = S3Client.builder()
                 .credentialsProvider(credentialsProvider)
