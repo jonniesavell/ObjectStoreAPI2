@@ -11,9 +11,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author jonniesavell
@@ -35,6 +37,16 @@ public class ObjectService implements IObjectService {
         this.primitiveObjectService = primitiveObjectService;
         this.primitiveMetaDataService = primitiveMetaDataService;
         this.arnFragment = "arn:aws:s3:::" + bucketName;
+    }
+
+    @Override
+    public Collection<Handle> retrieveHandlesByPrefix(final String prefix) throws SystemException {
+        final Collection<Handle> result =
+                primitiveObjectService.retrieveKeysByPrefix(prefix)
+                        .stream()
+                        .map(key -> new Handle(key))
+                        .collect(Collectors.toList());
+        return result;
     }
 
     @Override

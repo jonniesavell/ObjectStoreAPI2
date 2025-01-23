@@ -1,25 +1,29 @@
 package com.indigententerprises.components.objects;
 
+import com.indigententerprises.services.common.SystemException;
+import com.indigententerprises.services.streams.StreamTransferService;
+
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
-
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
-import com.indigententerprises.services.common.SystemException;
-import com.indigententerprises.services.streams.StreamTransferService;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
 /**
@@ -39,6 +43,23 @@ public class ObjectServiceImplementation implements
         this.s3Client = s3Client;
         this.targetBucketName = targetBucketName;
         this.streamTransferService = streamTransferService;
+    }
+
+    @Override
+    public Collection<String> retrieveKeysByPrefix(final String prefix) throws SystemException {
+        final Collection<String> result = new LinkedList<>();
+        final ListObjectsV2Request request =
+                ListObjectsV2Request.builder()
+                        .bucket(this.targetBucketName)
+                        .prefix(prefix)
+                        .build();
+        final ListObjectsV2Response response = this.s3Client.listObjectsV2(request);
+
+        for (S3Object object : response.contents()) {
+            result.add(object.key());
+        }
+
+        return result;
     }
 
     @Override
