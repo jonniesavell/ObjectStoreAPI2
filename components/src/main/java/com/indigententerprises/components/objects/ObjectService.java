@@ -196,8 +196,8 @@ public class ObjectService implements IObjectService {
     }
 
     @Override
-    public void removeObject(final String identifier) throws NoSuchElementException, SystemException {
-        primitiveObjectService.deleteObject(identifier);
+    public void removeObject(final Handle handle) throws NoSuchElementException, SystemException {
+        primitiveObjectService.deleteObject(handle.identifier);
     }
 
     private String constructMetaDataIdentifier(final String identifier) {
