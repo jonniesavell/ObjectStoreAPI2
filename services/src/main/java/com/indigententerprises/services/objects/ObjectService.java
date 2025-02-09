@@ -21,4 +21,6 @@ public interface ObjectService {
             final String id,
             final OutputStream outputStream
     ) throws NoSuchElementException, SystemException;
+
+    public void deleteObject(final String id) throws NoSuchElementException, SystemException;
 }

@@ -47,4 +47,6 @@ public interface IObjectService {
             final int fileSize,
             final Map<String, Object> metadata)
             throws SystemException;
+
+    public void removeObject(final String identifier) throws NoSuchElementException, SystemException;
 }

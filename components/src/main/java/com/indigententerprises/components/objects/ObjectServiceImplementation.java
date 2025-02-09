@@ -8,6 +8,8 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
@@ -91,6 +93,7 @@ public class ObjectServiceImplementation implements
             final OutputStream outputStream
     ) throws NoSuchElementException, SystemException {
         try {
+            // TODO: kill head-bucket-request: useless round-trip to S3
             final HeadBucketRequest headBucketRequest =
                     HeadBucketRequest
                             .builder()
@@ -118,6 +121,28 @@ public class ObjectServiceImplementation implements
             throw new NoSuchElementException();
         } catch (IOException e) {
             throw new SystemException("", e);
+        } catch (AwsServiceException e) {
+            throw new SystemException("", e);
+        } catch (SdkException e) {
+            throw new SystemException("", e);
+        }
+    }
+
+    @Override
+    public void deleteObject(final String id) throws NoSuchElementException, SystemException {
+        try {
+            final DeleteObjectRequest deleteObjectRequest =
+                    DeleteObjectRequest
+                            .builder()
+                            .bucket(this.targetBucketName)
+                            .key(id)
+                            .build();
+            final DeleteObjectResponse deleteObjectResponse =
+                    s3Client.deleteObject(deleteObjectRequest);
+        } catch (NoSuchKeyException e) {
+            throw new NoSuchElementException();
+        } catch (NoSuchBucketException e) {
+            throw new NoSuchElementException();
         } catch (AwsServiceException e) {
             throw new SystemException("", e);
         } catch (SdkException e) {

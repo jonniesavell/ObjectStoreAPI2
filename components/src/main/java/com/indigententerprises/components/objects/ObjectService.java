@@ -86,8 +86,8 @@ public class ObjectService implements IObjectService {
     @Override
     public void retrieveObject(
             final Handle handle,
-            final OutputStream outputStream)
-            throws NoSuchElementException, SystemException {
+            final OutputStream outputStream
+    ) throws NoSuchElementException, SystemException {
 
         this.primitiveObjectService.retrieveObject(handle.identifier, outputStream);
     }
@@ -95,8 +95,8 @@ public class ObjectService implements IObjectService {
     @Override
     public Map<String, Object> retrieveObjectAndMetaData(
             final Handle handle,
-            final OutputStream outputStream)
-            throws NoSuchElementException, SystemException {
+            final OutputStream outputStream
+    ) throws NoSuchElementException, SystemException {
         try {
             final File file = File.createTempFile("temp", ".tmp");
 
@@ -136,8 +136,8 @@ public class ObjectService implements IObjectService {
     public HandleAndArnPair storeObjectAndMetaData(
             final InputStream inputStream,
             final int fileSize,
-            final Map<String, Object> metadata)
-            throws SystemException {
+            final Map<String, Object> metadata
+    ) throws SystemException {
         final UUID uuid = UUID.randomUUID();
         final Handle handle = new Handle(uuid.toString());
         return storeObjectAndMetaData(inputStream, handle, fileSize, metadata);
@@ -151,8 +151,8 @@ public class ObjectService implements IObjectService {
             final InputStream inputStream,
             final Handle handle,
             final int fileSize,
-            final Map<String, Object> metadata)
-            throws SystemException {
+            final Map<String, Object> metadata
+    ) throws SystemException {
         this.primitiveObjectService.persistObject(handle.identifier, fileSize, inputStream);
 
         if (!metadata.isEmpty()) {
@@ -193,6 +193,11 @@ public class ObjectService implements IObjectService {
         final String arn = arnBuilder.toString();
         final HandleAndArnPair result = new HandleAndArnPair(handle, arn);
         return result;
+    }
+
+    @Override
+    public void removeObject(final String identifier) throws NoSuchElementException, SystemException {
+        primitiveObjectService.deleteObject(identifier);
     }
 
     private String constructMetaDataIdentifier(final String identifier) {
